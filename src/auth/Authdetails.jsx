@@ -2,7 +2,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import userdefault from "../icons/user.svg"
-import { NavLink } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import {
     Menu,
     MenuHandler,
@@ -16,6 +16,7 @@ import {message} from "antd"
 
 const AuthDetails = () => {
     const [authUser, setAuthUser] = useState(null);
+    const history= useNavigate()
 
     useEffect(() => {
         const listen = onAuthStateChanged(auth, (user) => {
@@ -36,7 +37,7 @@ const AuthDetails = () => {
             .then(() => {
                 
                 localStorage.clear();
-                window.location.reload();
+                history("/");
                 
                 
             })
