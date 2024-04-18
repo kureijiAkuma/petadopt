@@ -7,7 +7,10 @@ import Shop_2 from "./pages/Shop_2"
 import Signin from "./pages/Signin"
 import Signupselect from "./pages/Signupselect"
 import Signup from "./pages/Signup"
+import AddShop from "./Dashboard/AddShop"
 import Adminsettings from "./pages/Adminsettings"
+import DelShop from "./Dashboard/DelShop"
+import UpdateShopItem from "./Dashboard/UpdateShopItem"
 import "./index.css"
 
 
@@ -33,7 +36,10 @@ export default function App() {
           <Route exact path="/signupselect" element={<Signupselect />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route exact path="/shop_2" element={<Shop_2 />} />
+          <Route exact path="/addshop" element={<AddShop />} />
           <Route exact path="/adminsettings" element={<Adminsettings />} />
+          <Route exact path="/delshop" element={<DelShop />} />
+          <Route exact path="/updateshopitem" element={<UpdateShopItem />} />
         </Routes>
       </div>
     </Router>

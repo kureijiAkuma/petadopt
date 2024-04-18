@@ -2,7 +2,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import userdefault from "../icons/user.svg"
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate,NavLink } from "react-router-dom";
 import {
     Menu,
     MenuHandler,
@@ -61,6 +61,7 @@ const AuthDetails = () => {
                     <MenuList>
                         {authUser.email == "admin@gmail.com"? (<MenuItem className="hover:bg-gray-500"><NavLink to="/adminsettings">Admin Settings</NavLink></MenuItem>)
                         : ""}
+                        <MenuItem><NavLink to="#">Settings</NavLink></MenuItem>
                         
                         <MenuItem className="hover:bg-gray-500" onClick={userSignOut}>Logout</MenuItem>
                     </MenuList>

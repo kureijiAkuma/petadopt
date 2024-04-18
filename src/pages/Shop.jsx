@@ -1,21 +1,49 @@
 import React from "react";
 import { useEffect, useState } from "react";
+import { collection, addDoc, getDocs } from "firebase/firestore";
+import { DB } from "../firebase"
 import Navbar from "../templates/Navbar";
 import background from "../images/bg_2.jpg"
 import catpeek from "../images/cat_peek.png"
-import data from "../lists/items_shop.js"
 import Shopcardlist from "../templates/Shopcardlist"
 import Pagination from "../templates/Pagination"
+import { GetProduct } from "../API/GetItems";
+
 
 
 export default function Shop() {
+
+
+    const [list, setList] = useState([])
+
+    const fetchData = async () => {
+        try {
+            const response = await GetProduct()
+            if (response.success) {
+                setList(response.data)
+            }
+        } catch (error) {
+
+        }
+    }
+    // Call the API when component mounts.
+    useEffect(() => { fetchData() }, [])
+
     
+    {/*Load Database in Shop items folder */}
+    const shopItemsCollectionRef = collection(DB, "shopitems");
+    console.log(shopItemsCollectionRef)
+    const [shopitems, setShopItems] = useState([]);
+
+    {/*Number of post per page */}
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(12);
 
     const lastPostIndex = currentPage * postsPerPage;
     const firstPostIndex = lastPostIndex - postsPerPage;
-    const currentPosts = data.slice(firstPostIndex, lastPostIndex);
+    const currentPosts = list.slice(firstPostIndex, lastPostIndex);
+
+
 
     return (
         <div div className="h-screen overflow-y-auto overflow-x-hidden bg-fixed bg-no-repeat bg-center bg-cover" style={{ backgroundImage: `url(${background})` }}>
@@ -52,7 +80,7 @@ export default function Shop() {
 
                     <div className="flex justify-center basis-full ">
                         <Pagination
-                            totalPosts={data.length}
+                            totalPosts={list.length}
                             postsPerPage={postsPerPage}
                             setCurrentPage={setCurrentPage}
                             currentPage={currentPage}

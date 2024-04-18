@@ -2,7 +2,7 @@ import background from "../images/signin_bg.png"
 import google from "../images/logo_google.png"
 import logo from "../images/logo.png"
 import { useNavigate, NavLink } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "../firebase"
 import {message} from "antd"
@@ -26,9 +26,7 @@ export default function Signup() {
         })
     }
 
-    useEffect(() => {
-        setValue(localStorage.getItem('email'))
-    })
+    
 
     return (
         <div className="flex w-screen h-screen">
