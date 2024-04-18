@@ -1,0 +1,21 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+	<title>star-svg</title>
+	<defs>
+		<image  width="48" height="64" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABACAMAAABr/gR0AAAAAXNSR0IB2cksfwAAAJZQTFRFAAAA577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577G577GEOGhdgAAADJ0Uk5TAC3gKv/jNeboQuvtGo0Xeb3l+P4SdrvkeJe0zfMJ+yD9T8jf8QOO3TPwPPrvSVf2ZHdfIwVaAAAA/UlEQVR4nO3WWQsBURQH8HPI2CU82Pc13/9zECWSXbK9KCW7GcmIS/f/QB7mvsy5nfPr3M69D8MELjaAAX4E+AwC0wkDZj5gwHLGgHIiDFiPGFAbYMB2wIB9Txhw7DBwbYAA5xYCLt6QJPCwtla33UcQUAv391IJEFy+9vt8pNACBBSeg4AiMxBoDxQDFJ2CIMYTDFCCxxggxf1wd1JvKTUCAaWHIMgMQJDtgyCuT1YO+PUxSYFcT4+/M9Z8FwTe9T3MtGRAoXMLzKnmc04ISu3rR0k2XnNCUNbOUeS6KCcE6jUEfTVRRgxyvTJXxeVikPBV3pX/w5+AAf4UXADS601BXK4jOgAAAABJRU5ErkJggg=="/>
+	</defs>
+	<style>
+		.s0 { fill: #919191;stroke: #000000;stroke-width: .4 } 
+		.s1 { fill: #ffffff;stroke: #000000;stroke-width: .4 } 
+	</style>
+	<g id="SVGRepo_bgCarrier">
+	</g>
+	<g id="SVGRepo_tracerCarrier">
+	</g>
+	<g id="SVGRepo_iconCarrier">
+		<g id="Layer">
+			<path id="Layer" fill-rule="evenodd" class="s0" d="m49.3 64c-0.7 0-1.3-0.2-1.9-0.5l-15.4-8.5-15.4 8.5c-1.3 0.7-3 0.7-4.2-0.2-1.3-0.9-1.9-2.4-1.7-3.9l3-18.3-12.6-12.9c-1-1.1-1.4-2.7-0.9-4.1 0.5-1.4 1.7-2.4 3.2-2.7l17.2-2.6 7.8-16.5c0.6-1.4 2-2.3 3.6-2.3 1.5 0 3 0.9 3.6 2.3l7.8 16.5 17.2 2.6c1.5 0.3 2.7 1.3 3.2 2.7 0.5 1.4 0.1 3-0.9 4.1l-12.6 12.9 3 18.3c0.2 1.5-0.4 3-1.7 3.9-0.7 0.5-1.5 0.7-2.3 0.7zm-17.3-17.6q1 0 1.9 0.5l10.1 5.6-2-12.1c-0.2-1.3 0.2-2.5 1.1-3.4l8.6-8.8-11.7-1.8c-1.3-0.2-2.4-1.1-3-2.3l-5-10.7-5 10.7c-0.6 1.2-1.7 2.1-3 2.3l-11.7 1.8 8.6 8.8c0.9 0.9 1.3 2.1 1 3.4l-1.9 12.1 10.1-5.6q0.9-0.5 1.9-0.5z"/>
+			<path id="Layer" class="s1" d="m32 46.4q1 0 1.9 0.5l10.1 5.6-2-12.1c-0.2-1.3 0.2-2.5 1.1-3.4l8.6-8.8-11.7-1.8c-1.3-0.2-2.4-1.1-3-2.3l-5-10.7-5 10.7c-0.6 1.2-1.7 2.1-3 2.3l-11.7 1.8 8.6 8.8c0.8 0.9 1.3 2.1 1 3.4l-1.9 12.1 10.1-5.6q0.9-0.5 1.9-0.5z"/>
+			<use id="Layer 1" href="#img1" x="0" y="0"/>
+		</g>
+	</g>
+</svg>
