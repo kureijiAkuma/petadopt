@@ -189,7 +189,7 @@ const ProductTable = () => {
   };
 
   return (
-    <div>
+    <div className="mt-24">
       <h2 className="text-2xl font-bold">Product Items Table</h2>
       {loading ? (
         <p>Loading...</p>
@@ -222,9 +222,9 @@ const ProductTable = () => {
         </table>
       )}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 overflow-auto bg-gray-700 bg-opacity-50 flex items-center justify-center">
+        <div className=" fixed inset-0 z-50 overflow-auto bg-gray-700 bg-opacity-50 flex items-center justify-center">
           <div
-            className="bg-white p-4 rounded-lg shadow-lg"
+            className="bg-white p-4 rounded-lg shadow-lg mt-64 mb-5"
             ref={modalRef}
           >
             <span
@@ -430,3 +430,4 @@ const ProductTable = () => {
 };
 
 export default ProductTable;
+

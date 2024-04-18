@@ -2,9 +2,11 @@ import Navbar from "../templates/Navbar"
 import bag from "../icons/bag.svg"
 import heart from "../icons/heart.svg"
 import bin from "../icons/bin.svg"
+import upload from "../icons/upload.svg"
 import { useState } from "react"
 import AddShop from "../Dashboard/AddShop"
 import DelShop from "../Dashboard/DelShop"
+import UpdateShopItem from "../Dashboard/UpdateShopItem"
 
 export default function Adminsettings() {
     const [activeTab, setActiveTab] = useState('addshop');
@@ -27,7 +29,12 @@ export default function Adminsettings() {
                                 <span className="ms-3">Delete Product</span>
                             </div>
                         </li>
-                        {/* Add other tabs here */}
+                        <li>
+                            <div onClick={() => setActiveTab('updateshop')} className={`cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-red-200/80 group ${activeTab === 'updateshop' ? 'bg-red-200' : 'bg-white'}`}>
+                                <img className="w-6 h-6" src={upload} alt="Heart icon" />
+                                <span className="ms-3">Update Product</span>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </aside>
@@ -36,6 +43,7 @@ export default function Adminsettings() {
             <div className={`flex justify-center sm:ml-64 ${activeTab === 'addshop' ? "bg-red-200": "bg-white" }`}>
                 {activeTab === 'addshop' && <AddShop />}
                 {activeTab === 'delshop' && <DelShop />}
+                {activeTab === 'updateshop' && <UpdateShopItem />}
                 {/* Add other tab content here */}
             </div>
         </div>
