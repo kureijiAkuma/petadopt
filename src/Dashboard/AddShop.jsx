@@ -119,13 +119,13 @@ export default function AddShop() {
         setThumbnailUpload(event.target.files[0]);
     };
 
-    const handleFileChange = (event) => {
-        const files = Array.from(event.target.files);
-        if (files.length !== 4) {
-            message.error("Please select 4 featured images")
-        } else {
-            setImageUploads(files);
-        }
+    const handleFileChange = (event, index) => {
+        const file = event.target.files[0];
+        setImageUploads(prevImages => {
+            const updatedImages = [...prevImages];
+            updatedImages[index] = file;
+            return updatedImages;
+        });
     };
 
     const handleSizeChange = (size) => {
@@ -146,15 +146,9 @@ export default function AddShop() {
             !quantity ||
             !description ||
             !thumbnailUpload ||
-            imageUploads.length !== 4
+            imageUploads.some(image => !image)
         ) {
             message.error("Please fill out all fields")
-            return;
-        }
-
-        // Check if no featured images are selected
-        if (imageUploads.length === 0) {
-            message.error("Please select at least one featured image");
             return;
         }
 
@@ -198,16 +192,34 @@ export default function AddShop() {
                 ))}
             </div>
 
-            <h1 className="font-Roboto text-lg font-medium">Thumbnail (Single Image)</h1>
-            <input type="file" accept="image/*" onChange={handleThumbnailChange} required />
+            <h1 className="font-Roboto text-lg font-medium">Images</h1>
+            
 
-            <h1 className="font-Roboto text-lg font-medium">Featured Images (4 images)</h1>
-            <input type="file" accept="image/*" multiple onChange={handleFileChange} required />
+            {/* Featured images placeholders */}
+            <div className="flex gap-4">
+                <div onClick={() => document.getElementById('thumbnailInput').click()} className="w-32 h-32 bg-gray-200 flex items-center justify-center cursor-pointer">
+                    {thumbnailUpload ? (
+                        <img src={URL.createObjectURL(thumbnailUpload)} alt={`Thumbnail`} className="w-full h-full object-cover" />
+                    ) : (
+                        `Thumbnail`
+                    )}
+                </div>
+                {[...Array(4)].map((_, index) => (
+                    <div key={index} onClick={() => document.getElementById(`featuredImageInput-${index}`).click()} className="w-32 h-32 bg-gray-200 flex items-center justify-center cursor-pointer">
+                        {imageUploads[index] ? (
+                            <img src={URL.createObjectURL(imageUploads[index])} alt={`Featured Image ${index + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                            `Featured Image ${index + 1}`
+                        )}
+                    </div>
+                ))}
+            </div>
+            {[...Array(4)].map((_, index) => (
+                <input key={index} type="file" accept="image/*" id={`featuredImageInput-${index}`} style={{ display: "none" }} onChange={(event) => handleFileChange(event, index)} required />
+            ))}
+            <input type="file" accept="image/*" id="thumbnailInput" style={{ display: "none" }} onChange={handleThumbnailChange} required />
 
             <button onClick={handleSubmit} type="submit" className="w-1/2 px-5 py-2 self-center rounded-lg border border-solid border-black/70 hover:bg-red-200/80 active:bg-red-300/80 bg-red-200 font-Roboto font-medium text-black">Submit</button>
-
         </div>
-
     )
 }
-

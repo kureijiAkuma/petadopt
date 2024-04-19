@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Progress } from "@material-tailwind/react";
 import Navbar from "../templates/Navbar";
 import Review from "../templates/Review";
 import star_fill from "../icons/star_fill.svg";
@@ -7,16 +6,36 @@ import star_half from "../icons/star-half_2.svg";
 import star_empty from "../icons/star.svg";
 import round_check from "../icons/round_check.svg";
 import background from "../images/bg_2.jpg";
-
 import { useLocation } from "react-router-dom";
-import Comment from "../templates/Comment"
+import Comment from "../templates/Comment";
+import { doc, getDoc } from "firebase/firestore";
+import { DB } from "../firebase";
 
 export default function Shop_2(props) {
   const [quantity, changeQuantity] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [productData, setProductData] = useState(null);
   const location = useLocation();
-  const productData = location.state.productData;
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const docid = location.state.docid;
+        const docRef = doc(DB, "shopitems", docid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProductData(docSnap.data());
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+
+    fetchProductData();
+  }, [location.state.docid]);
 
   const openModal = (index) => {
     setSelectedImageIndex(index);
@@ -28,10 +47,14 @@ export default function Shop_2(props) {
   };
 
   const handleClickOutsideModal = (event) => {
-    if (event.target.classList.contains('bg-black')) {
+    if (event.target.classList.contains("bg-black")) {
       setModalOpen(false);
     }
   };
+
+  if (!productData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="overflow-y-auto overflow-x-hidden bg-fixed bg-no-repeat bg-center bg-cover" style={{ backgroundImage: `url(${background})` }}>
@@ -39,13 +62,11 @@ export default function Shop_2(props) {
       <div className="pt-24 flex w-screen flex-wrap gap-y-5">
         {/* Featured Images Section*/}
         <div className="flex justify-end items-start flex-wrap gap-5 w-6/12 h-fit  p-5">
-
           {productData.imgUrls.map((imageUrl, index) => (
             <div key={index} className="basis-5/12 h-64 bg-red-50 shadow-custom border border-solid border-black " onClick={() => openModal(index)}>
               <img className="w-full h-full object-cover cursor-pointer" src={imageUrl} alt="" />
             </div>
           ))}
-
         </div>
         {/*Selection Box Area*/}
         <div className="flex justify-center w-6/12 h-fit p-5">
@@ -57,7 +78,6 @@ export default function Shop_2(props) {
                 <img className="w-8 h-8" src={round_check} alt="" />
                 <h2 className="font-Roboto font-semibold text-xl text-gray-800">In Stock</h2>
               </div>
-
             </div>
             <div className="flex flex-wrap gap-5 justify-start items-center w-full">
               <h2 className=" font-Roboto text-xl font-bold text-deep-orange-700">P{productData.price}</h2>
@@ -72,11 +92,8 @@ export default function Shop_2(props) {
                   }
                 })}
               </div>
-
               <h2 className="ml-auto font-Roboto text-xl text-gray-800 font-bold">{productData.quantity} available</h2>
-
             </div>
-
             {productData.colorValues && productData.colorValues.length > 0 && (
               <div>
                 <h2 className="font-Roboto text-lg font-medium">Color</h2>
@@ -89,7 +106,6 @@ export default function Shop_2(props) {
                 </div>
               </div>
             )}
-
             {productData.sizes && productData.sizes.length > 0 && (
               <div>
                 <h2 className="mt-2 font-Roboto text-lg font-medium">Size</h2>
@@ -102,21 +118,15 @@ export default function Shop_2(props) {
                 </div>
               </div>
             )}
-
             <h2 className="mt-2 font-Roboto text-lg font-medium">Quantity</h2>
             <div className="flex flex-wrap w-fit h-fit gap-1">
-
               <button onClick={() => changeQuantity(quantity > 1 ? quantity - 1 : 1)} className="w-fit h-fit px-5 bg-white border border-solid border-black text-center shadow-custom-2 active:bg-gray-400">
                 <h1 className="font-semibold">-</h1>
               </button>
-
               <input value={quantity} className="w-28 h-fit font-Roboto font-medium text-center bg-white border border-solid border-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-custom-2" />
-
               <button onClick={() => changeQuantity(quantity + 1)} className="w-fit h-fit px-5 bg-white border border-solid border-black text-center shadow-custom-2 active:bg-gray-400">
                 <h1 className="font-semibold">+</h1>
               </button>
-
-
             </div>
             <button className="mt-4 self-center border border-solid border-black w-1/2 p-2 font-Roboto font-semibold bg-pink-100 shadow-custom-2 active:bg-pink-200/50">Add to Cart</button>
           </div>
@@ -126,7 +136,6 @@ export default function Shop_2(props) {
           <h1 className="font-Roboto font-extrabold text-2xl">Description</h1>
           <h2 className="font-Roboto font-normal text-base mt-1">{productData.description}</h2>
         </div>
-
         <div className="flex gap-5 flex-col justify-start w-7/12  p-5">
           <h1 className="font-Roboto font-extrabold text-xl">Customer Reviews (243)</h1>
           <Comment />
@@ -143,16 +152,12 @@ export default function Shop_2(props) {
           <Comment />
           <Comment />
         </div>
-
         {/* Rating Section*/}
         <div className="flex flex-col justify-start items-center w-5/12  p-5">
           {/* Rating Box*/}
           <Review />
-
         </div>
-
       </div>
-
       {modalOpen && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center" onClick={handleClickOutsideModal}>
           <div className="w-7/12 max-w-fit h-7/12 max-h-fit flex justify-center items-center border border-solid rounded-xl p-3 bg-white">
@@ -161,7 +166,6 @@ export default function Shop_2(props) {
           </div>
         </div>
       )}
-
     </div>
   );
 }

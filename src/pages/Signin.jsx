@@ -3,9 +3,10 @@ import google from "../images/logo_google.png"
 import logo from "../images/logo.png"
 import { useNavigate, NavLink } from "react-router-dom"
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
-import { auth, provider } from "../firebase"
+import { collection, doc, setDoc } from "firebase/firestore";
+import { auth, provider, DB } from "../firebase"
 import { useEffect, useState } from "react"
-import {message} from 'antd'
+import { message } from 'antd'
 
 
 export default function Signin() {
@@ -13,6 +14,7 @@ export default function Signin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [value, setValue] = useState('')
+    
     const history = useNavigate()
 
     const signIn = (e) => {
@@ -32,11 +34,47 @@ export default function Signin() {
     }
 
     const handleClick = () => {
-        signInWithPopup(auth, provider).then((data) => {
-            setValue(data.user.email)
-            localStorage.setItem("email", data.user.email)
+        signInWithPopup(auth, provider)
+            .then((data) => {
+                console.log("Sign-in successful:", data.user);
+                const user = data.user;
+                setValue(user.email);
+                localStorage.setItem('email', user.email);
+                // Check if the user signed up using Google
+                if (user.metadata.creationTime === user.metadata.lastSignInTime) {
+                    console.log("New user signed up with Google:", user);
+                    createUserProfile(user);
+                } else {
+                    console.log("Existing user signed in:", user);
+                }
+            })
+            .catch((error) => {
+                console.error("Error signing in:", error);
+            });
+    };
+
+    const createUserProfile = (user) => {
+        const username = user.displayName || 'Unknown'; // Use displayName or fallback to 'Unknown' if not available
+        
+        // Reference to the "users" collection
+        const usersCollectionRef = collection(DB, "users");
+    
+        // Reference to the document within the "users" collection using the user's UID
+        const userDocRef = doc(usersCollectionRef, user.uid);
+    
+        // Set data for the document
+        setDoc(userDocRef, {
+            uid: user.uid,
+            username: username
         })
-    }
+        .then(() => {
+            console.log('User added to Firestore successfully');
+        })
+        .catch((error) => {
+            console.error('Error adding user to Firestore:', error);
+            // Handle error
+        });
+    };
 
     useEffect(() => {
         setValue(localStorage.getItem('email'))
@@ -63,11 +101,11 @@ export default function Signin() {
                         <div className="mt-5">
                             <div action="">
                                 <div className="relative mt-6">
-                                    <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" name="email" id="email" placeholder="Email Address" className="peer mt-1 w-full border-b-2 border-gray-300 px-0 py-1 placeholder:text-transparent focus:border-gray-500 focus:outline-none" autocomplete="NA" />
+                                    <input required value={email} onChange={(e) => setEmail(e.target.value)} type="email" name="email" id="email" placeholder="Email Address" className="peer mt-1 w-full border-b-2 border-gray-300 px-0 py-1 placeholder:text-transparent focus:border-gray-500 focus:outline-none" autocomplete="NA" />
                                     <label for="email" className="pointer-events-none absolute top-0 left-0 origin-left -translate-y-1/2 transdiv text-sm text-gray-800 opacity-75 transition-all duration-100 ease-in-out peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:top-0 peer-focus:pl-0 peer-focus:text-sm peer-focus:text-gray-800">Email Address</label>
                                 </div>
                                 <div className="relative mt-6">
-                                    <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password" id="password" placeholder="Password" className="peer peer mt-1 w-full border-b-2 border-gray-300 px-0 py-1 placeholder:text-transparent focus:border-gray-500 focus:outline-none" />
+                                    <input required value={password} onChange={(e) => setPassword(e.target.value)} type="password" name="password" id="password" placeholder="Password" className="peer peer mt-1 w-full border-b-2 border-gray-300 px-0 py-1 placeholder:text-transparent focus:border-gray-500 focus:outline-none" />
                                     <label for="password" className="pointer-events-none absolute top-0 left-0 origin-left -translate-y-1/2 transdiv text-sm text-gray-800 opacity-75 transition-all duration-100 ease-in-out peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:top-0 peer-focus:pl-0 peer-focus:text-sm peer-focus:text-gray-800">Password</label>
                                 </div>
                                 <div className="w-full px-3 pt-7 flex justify-center items-center">

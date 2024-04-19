@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { DB, storage } from "../firebase";
 import { ref, deleteObject } from "firebase/storage";
 import background from "../images/bg_2.jpg"
+import { message } from 'antd';
 
 export default function DelShop() {
     const [shopItems, setShopItems] = useState([]);
@@ -32,8 +33,10 @@ export default function DelShop() {
             // Delete document from Firestore
             await deleteDoc(doc(DB, "shopitems", id));
             setShopItems(shopItems.filter((item) => item.id !== id));
+            message.success("Item Deleted!")
         } catch (error) {
-            console.error("Error deleting shop item:", error);
+            message.error("Error deleting shop item");
+            console.log("Error deleting shop item:", error)
         }
     };
 

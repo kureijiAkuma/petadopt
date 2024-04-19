@@ -18,24 +18,29 @@ export default function Shop() {
 
     const fetchData = async () => {
         try {
-            const response = await GetProduct()
+            const response = await GetProduct();
             if (response.success) {
-                setList(response.data)
+                const productList = response.data.map(item => ({
+                    ...item,
+                    docid: item.id // Assuming the unique identifier is stored in 'id'
+                }));
+                setList(productList);
             }
         } catch (error) {
-
+            console.error("Error fetching product data:", error);
         }
-    }
+    };
+    
     // Call the API when component mounts.
     useEffect(() => { fetchData() }, [])
 
-    
-    {/*Load Database in Shop items folder */}
+
+    {/*Load Database in Shop items folder */ }
     const shopItemsCollectionRef = collection(DB, "shopitems");
     console.log(shopItemsCollectionRef)
     const [shopitems, setShopItems] = useState([]);
 
-    {/*Number of post per page */}
+    {/*Number of post per page */ }
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(12);
 

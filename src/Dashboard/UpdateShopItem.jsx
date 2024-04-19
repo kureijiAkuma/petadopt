@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GetProduct } from "../API/GetItems";
 import { doc, updateDoc } from "firebase/firestore";
-import { DB } from "../firebase";
+import { DB, storage } from "../firebase";
+import { message } from 'antd';
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const ProductTable = () => {
   const [productData, setProductData] = useState([]);
@@ -14,6 +16,8 @@ const ProductTable = () => {
   const [totalColor, setTotalColor] = useState(0);
   const [colorValues, setColorValues] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
+  const [featuredImageNames, setFeaturedImageNames] = useState([]);
+  const [thumbnailName, setThumbnailName] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +49,7 @@ const ProductTable = () => {
     if (selectedProduct) {
       setTotalColor(selectedProduct.colorValues.length);
       setColorValues(selectedProduct.colorValues);
+
     }
   }, [selectedProduct]);
 
@@ -65,12 +70,20 @@ const ProductTable = () => {
     }
   };
 
+
+
   const handleRowClick = (product) => {
     setSelectedProduct(product);
     setSelectedSizes(product.sizes || []);
     setSelectedImageIndex(null); // Reset selected image index
     setModalOpen(true);
     setEditedData({ ...product });
+  
+    // Extract filenames of featured images and thumbnail
+    const featuredImageNames = product.imgUrls.map(url => getFileName(url));
+    const thumbnailName = getFileName(product.thumbnailUrl);
+    setFeaturedImageNames(featuredImageNames);
+    setThumbnailName(thumbnailName);
   };
 
   const closeModal = () => {
@@ -104,15 +117,16 @@ const ProductTable = () => {
     setSelectedImageIndex(index);
     document.getElementById("featuredImageInput").click();
   };
-
+  
   const handleFeaturedImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         setEditedData((prevData) => {
-          const imgUrls = [...prevData.imgUrls];  
+          const imgUrls = [...prevData.imgUrls];
           imgUrls[selectedImageIndex] = reader.result;
+          console.log("imgUrls before updating:", imgUrls); // Add this line
           return {
             ...prevData,
             imgUrls,
@@ -170,23 +184,81 @@ const ProductTable = () => {
 
   const saveChanges = async () => {
     try {
+      const { createdAt, thumbnailUrl, imgUrls, ...updatedData } = editedData; // Exclude createdAt, thumbnailUrl, and imgUrls fields
+  
+      // Upload the updated thumbnail image to Firebase Storage if it has been modified
+      if (editedData.thumbnailUrl.startsWith("data:image")) {
+        const thumbnailFile = await uploadImageToStorage(editedData.thumbnailUrl, "thumbnail", thumbnailName);
+        updatedData.thumbnailUrl = await getDownloadURL(thumbnailFile);
+      }
+  
+      const updatedImgUrls = await Promise.all(editedData.imgUrls.map(async (imageUrl, index) => {
+        if (imageUrl.startsWith("data:image")) {
+          const featuredImageFile = await uploadImageToStorage(imageUrl, "featured", featuredImageNames[index]);
+          console.log("FEATURED IMAGE FILE:",featuredImageFile);
+          return await getDownloadURL(featuredImageFile);
+        }
+        return imageUrl;
+      }));
+  
+      updatedData.imgUrls = updatedImgUrls;
+  
+      // Update the Firestore document with the new data
       const productDocRef = doc(DB, "shopitems", selectedProduct.id);
       await updateDoc(productDocRef, {
-        ...editedData,
+        ...updatedData,
         colorValues,
       });
-      console.log("Document successfully updated!");
+      message.success("Document successfully updated!");
       closeModal();
-
+  
       setProductData((prevProductData) =>
         prevProductData.map((item) =>
-          item.id === selectedProduct.id ? editedData : item
+          item.id === selectedProduct.id ? updatedData : item
         )
       );
     } catch (error) {
       console.error("Error updating document: ", error);
     }
   };
+  
+
+  const uploadImageToStorage = async (imageDataUrl, type, folderandimgname) => {
+    // Convert base64 data URL to Blob
+    const base64String = imageDataUrl.split(",")[1];
+    const bytes = atob(base64String);
+    const byteArray = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) {
+      byteArray[i] = bytes.charCodeAt(i);
+    }
+    const blob = new Blob([byteArray], { type: "image/jpeg" });
+    
+    // Upload Blob to Firebase Storage
+    const storageRef = ref(storage, `${folderandimgname}`);
+    await uploadBytes(storageRef, blob);
+    return storageRef;
+  };
+  
+  const getFileName = (url) => {
+    // Split the URL by '/'
+    const parts = url.split("/");
+  
+    // Find the part containing the filename
+    let filenamePart = parts[parts.length - 1];
+  
+    // Remove any additional parameters after '?' if present
+    const indexOfQuestionMark = filenamePart.indexOf("?");
+    if (indexOfQuestionMark !== -1) {
+      filenamePart = filenamePart.substring(0, indexOfQuestionMark);
+    }
+  
+    // Replace any encoded characters
+    filenamePart = decodeURIComponent(filenamePart);
+    console.log("THIS IS FILENAMEPART")
+    console.log(filenamePart)
+    return filenamePart;
+  };
+  
 
   return (
     <div className="mt-24">
@@ -233,6 +305,7 @@ const ProductTable = () => {
             >
               &times;
             </span>
+            
             <h2 className="text-xl font-bold mb-2">{selectedProduct.name}</h2>
             <form>
               <div className="mb-4">
@@ -249,7 +322,7 @@ const ProductTable = () => {
                   value={editedData.name}
                   onChange={handleInputChange}
                   className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                  
+
                 />
               </div>
               <div className="mb-4">
@@ -391,23 +464,23 @@ const ProductTable = () => {
                 />
               </div>
               <div className="mb-4">
-                <h1 className="font-Roboto text-lg font-medium">
+                <h1 className="block text-sm font-medium text-gray-700">
                   Total color available
                 </h1>
                 <input
                   type="number"
                   onChange={handleTotalColorChange}
                   value={totalColor}
-                  className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base"
+                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
                 <div className="flex justify-start items-center gap-2 flex-wrap">
                   {colorValues.map((color, index) => (
                     <input
                       key={index}
-                      type="text"
+                      type="color"
                       value={color}
                       onChange={(e) => handleColorChange(index, e.target.value)}
-                      className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base"
+                      className=""
                     />
                   ))}
                 </div>
@@ -430,4 +503,3 @@ const ProductTable = () => {
 };
 
 export default ProductTable;
-
