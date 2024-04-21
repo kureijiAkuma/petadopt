@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../templates/Navbar";
 import Review from "../templates/Review";
 import star_fill from "../icons/star_fill.svg";
@@ -16,16 +16,25 @@ export default function Shop_2(props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [productData, setProductData] = useState(null);
+  const [docId, setDocId] = useState(null); // State to store the document ID
+  const [reviews, setReviews] = useState([]); // State to store reviews
   const location = useLocation();
 
   useEffect(() => {
     const fetchProductData = async () => {
       try {
         const docid = location.state.docid;
+        setDocId(docid); // Set the document ID state
         const docRef = doc(DB, "shopitems", docid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProductData(docSnap.data());
+          // Load reviews for the product
+          const reviewsRef = doc(DB, "reviews", docid);
+          const reviewsDoc = await getDoc(reviewsRef);
+          if (reviewsDoc.exists()) {
+            setReviews(reviewsDoc.data().reviews || []);
+          }
         } else {
           console.log("No such document!");
         }
@@ -60,7 +69,6 @@ export default function Shop_2(props) {
     <div className="overflow-y-auto overflow-x-hidden bg-fixed bg-no-repeat bg-center bg-cover" style={{ backgroundImage: `url(${background})` }}>
       <Navbar />
       <div className="pt-24 flex w-screen flex-wrap gap-y-5">
-        {/* Featured Images Section*/}
         <div className="flex justify-end items-start flex-wrap gap-5 w-6/12 h-fit  p-5">
           {productData.imgUrls.map((imageUrl, index) => (
             <div key={index} className="basis-5/12 h-64 bg-red-50 shadow-custom border border-solid border-black " onClick={() => openModal(index)}>
@@ -68,9 +76,7 @@ export default function Shop_2(props) {
             </div>
           ))}
         </div>
-        {/*Selection Box Area*/}
         <div className="flex justify-center w-6/12 h-fit p-5">
-          {/*Selection Box*/}
           <div className="flex flex-wrap flex-col items-start gap-x-3 gap-y-4 w-9/12 h-fit bg-red-100 p-10 border border-solid border-black shadow-custom">
             <div className="flex justify-between w-full">
               <h1 className="font-Roboto font-extrabold text-2xl">{productData.name}</h1>
@@ -131,31 +137,18 @@ export default function Shop_2(props) {
             <button className="mt-4 self-center border border-solid border-black w-1/2 p-2 font-Roboto font-semibold bg-pink-100 shadow-custom-2 active:bg-pink-200/50">Add to Cart</button>
           </div>
         </div>
-        {/*Description*/}
         <div className="m-auto w-10/12 py-5 px-8 bg-red-100 border border-solid border-black shadow-custom">
           <h1 className="font-Roboto font-extrabold text-2xl">Description</h1>
           <h2 className="font-Roboto font-normal text-base mt-1">{productData.description}</h2>
         </div>
         <div className="flex gap-5 flex-col justify-start w-7/12  p-5">
-          <h1 className="font-Roboto font-extrabold text-xl">Customer Reviews (243)</h1>
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
-          <Comment />
+          <h1 className="font-Roboto font-extrabold text-xl">Customer Reviews ({reviews.length})</h1>
+          {reviews.map((review, index) => (
+            <Comment key={index} review={review} />
+          ))}
         </div>
-        {/* Rating Section*/}
         <div className="flex flex-col justify-start items-center w-5/12  p-5">
-          {/* Rating Box*/}
-          <Review />
+          <Review docId={docId} />
         </div>
       </div>
       {modalOpen && (
