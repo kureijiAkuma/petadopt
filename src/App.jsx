@@ -12,11 +12,15 @@ import Adminsettings from "./pages/Adminsettings"
 import DelShop from "./Dashboard/DelShop"
 import UpdateShopItem from "./Dashboard/UpdateShopItem"
 import UserSettings from "./pages/UserSettings"
+import PhoneVerification from "./templates/PhoneVerification"
+import Cart from "./pages/Cart"
+import MyPurchase from "./pages/MyPurchase"
 import "./index.css"
 
 
 //----------ROUTER-----------//
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
+
 
 
 
@@ -42,8 +46,9 @@ export default function App() {
           <Route exact path="/settings" element={<UserSettings />} />
           <Route exact path="/delshop" element={<DelShop />} />
           <Route exact path="/updateshopitem" element={<UpdateShopItem />} />
-          
-          
+          <Route exact path="/phoneverification" element={<PhoneVerification />} />
+          <Route exact path="/cart" element={<Cart />} />
+          <Route exact path="/mypurchase" element={<MyPurchase />} />
         </Routes>
       </div>
     </Router>

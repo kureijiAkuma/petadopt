@@ -69,6 +69,7 @@ export default function Shop() {
                                 <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Accessories</li>
                                 <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Pet Foods</li>
                                 <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Medicines</li>
+                                <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Hygiene</li>
                                 <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Toys</li>
                             </ul>
                         </div>

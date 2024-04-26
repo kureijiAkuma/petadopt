@@ -18,6 +18,7 @@ export default function Review(props) {
   const [Rating_3, setRating_3] = useState(0);
   const [Rating_2, setRating_2] = useState(0);
   const [Rating_1, setRating_1] = useState(0);
+  const [recpercent, setRecPercent] = useState(0);
 
   useEffect(() => {
     // Firebase listener to check if user is authenticated
@@ -51,6 +52,7 @@ export default function Review(props) {
           setRating_3(data.rating[2]);
           setRating_2(data.rating[1]);
           setRating_1(data.rating[0]);
+          setRecPercent(((Rating_4+Rating_5)/totalReviews)*100);
         }
       } catch (error) {
         console.error("Error loading review data:", error);
@@ -156,7 +158,7 @@ export default function Review(props) {
         <img className="w-10 h-10" src={star_fill} alt="" />
         <h1 className="font-Roboto font-extrabold text-5xl">{totalRating && totalReviews ? (totalRating / totalReviews).toFixed(1) : '0.0'}</h1>
         <div className="flex flex-col">
-          <h2 className=" font-Roboto text-base font-medium">{Rating_4+Rating_5} out of {totalReviews} ({((Rating_4+Rating_5)/totalReviews)*100})%</h2>
+          <h2 className=" font-Roboto text-base font-medium">{Rating_4+Rating_5} out of {totalReviews} ({recpercent ? recpercent : 0})%</h2>
           <h2 className=" font-Roboto text-base font-medium text-gray-800">Customers recommend this product</h2>
         </div>
       </div>

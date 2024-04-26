@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../templates/Navbar';
-import { auth, DB } from '../firebase';
+import { auth, DB, RecaptchaVerifier } from '../firebase'; // Import RecaptchaVerifier
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import { Input, Typography } from '@material-tailwind/react';
 import { message } from 'antd';
@@ -10,9 +10,11 @@ export default function UserSettings() {
     const [newDisplayName, setNewDisplayName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [user, setUser] = useState(null);
+    const [loadeddata, setLoadedData] = useState([]);
     const [lastDisplayNameChangeTime, setLastDisplayNameChangeTime] = useState(0);
     const [barangays, setBarangays] = useState([]);
-    const [selectedBarangay, setSelectedBarangay] = useState("Select a Barangay"); // Set default value to "Select a Barangay"
+    const [selectedBarangay, setSelectedBarangay] = useState("Select a Barangay");
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -42,6 +44,7 @@ export default function UserSettings() {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                setLoadedData(data);
                 if (data.lastDisplayNameChangeTime) {
                     setLastDisplayNameChangeTime(data.lastDisplayNameChangeTime);
                 }
@@ -51,6 +54,9 @@ export default function UserSettings() {
         }
     };
 
+
+
+
     const handleSubmit = async () => {
         if (!user) {
             console.error('No user is currently signed in or user object is not properly initialized');
@@ -59,7 +65,7 @@ export default function UserSettings() {
         }
 
         // Check if any input fields (except the select box) have values
-        if (newDisplayName !== "" || selectedBarangay !== "Select a Barangay") {
+        if (newDisplayName !== "" || selectedBarangay !== "Select a Barangay" || phoneNumber !== "") {
             // Fetch existing user data from the database
             let existingUserData;
             try {
@@ -89,13 +95,16 @@ export default function UserSettings() {
                 userData.barangay = selectedBarangay;
             }
 
+            if (phoneNumber !== "") {
+                userData.phoneNumber = phoneNumber;
+            }
+
             try {
                 // Save merged user data to the database
                 await setDoc(doc(DB, "users", user.uid), userData);
 
                 message.success('Values saved successfully.');
-                setNewDisplayName('');
-                setSelectedBarangay('Select a Barangay');
+
 
                 // Update the last display name change time only if the display name is changed
                 if (newDisplayName !== "") {
@@ -114,16 +123,14 @@ export default function UserSettings() {
     };
 
 
-
     return (
         <div className="flex flex-col justify-start items-center">
             <Navbar />
             <div className="flex flex-col justify-center h-screen w-3/5 pt-20 p-20 bg-white gap-4">
                 <h1 className='font-Roboto font-semibold text-xl'>Settings</h1>
                 <div>
-                    <Input variant="outlined" label="Change Username" placeholder="Outlined" value={newDisplayName} onChange={(e) => setNewDisplayName(e.target.value)} />
+                    <Input variant="outlined" label="Change Username" placeholder={loadeddata.username ? loadeddata.username : "Username"} value={newDisplayName} onChange={(e) => setNewDisplayName(e.target.value)} />
                 </div>
-
 
                 <div className="relative">
                     <span className="absolute start-3 bottom-3 text-gray-500 dark:text-gray-400">
@@ -134,26 +141,39 @@ export default function UserSettings() {
                     <input
                         type="tel"
                         id="phone-input"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
                         className="placeholder-blue-gray-500 h-full w-full pl-8 rounded-[7px] border border-blue-gray-200 bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200  empty:!bg-gray-200 focus:border-2  focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
                         pattern="[0-9]{11}"
-                        maxLength="11"
-                        placeholder="09975342236"
+                        maxLength="13"
+                        placeholder={loadeddata.phoneNumber ? loadeddata.phoneNumber : "09971231234"}
                     />
-                    <label for="floating-phone-number" className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:start-6 peer-focus:start-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Phone number</label>
+
+                    <label htmlFor="phone-input" className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-placeholder-shown:start-6 peer-focus:start-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto">Phone number</label>
                 </div>
+
 
 
                 <div>
                     <select
                         className="peer h-full w-full rounded-[7px] border border-blue-gray-200 bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200  empty:!bg-gray-900 focus:border-2  focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
                         value={selectedBarangay}
-                        onChange={(e) => setSelectedBarangay(e.target.value)}
+                        onChange={(e) => {
+                            console.log("Selected Barangay:", e.target.value);
+                            setSelectedBarangay(e.target.value);
+                        }}
                     >
                         <option disabled>Select a Barangay</option>
                         {barangays.map(barangay => (
                             <option key={barangay.code} value={barangay.name}>{barangay.name}</option>
                         ))}
                     </select>
+
+
+
+
+
+
                 </div>
 
                 <button onClick={handleSubmit}>Update Changes</button>

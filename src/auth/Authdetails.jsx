@@ -64,6 +64,7 @@ const AuthDetails = () => {
         <div>
             {authUser ? (
                 <Menu>
+
                     <MenuHandler>
                         <div className="flex justify-center items-center cursor-pointer">
                             <h1 className="pl-1 pt-1 pr-2 font-Roboto font text-black">{username}</h1>
@@ -71,10 +72,17 @@ const AuthDetails = () => {
                         </div>
                     </MenuHandler>
                     <MenuList>
+                        <MenuItem>
+                            <NavLink to="/cart">Cart</NavLink>
+                        </MenuItem>
+                        <MenuItem>
+                            <NavLink to="/mypurchase">My Purchase</NavLink>
+                        </MenuItem>
                         {authUser.email === "admin@gmail.com" ? (
                             <MenuItem className="hover:bg-gray-500">
                                 <NavLink to="/adminsettings">Admin Settings</NavLink>
                             </MenuItem>
+                            
                         ) : (
                             ""
                         )}

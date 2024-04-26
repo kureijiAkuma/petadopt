@@ -7,6 +7,8 @@ import { useState } from "react"
 import AddShop from "../Dashboard/AddShop"
 import DelShop from "../Dashboard/DelShop"
 import UpdateShopItem from "../Dashboard/UpdateShopItem"
+import key from "../icons/key.svg"
+import GrantAccount from "./GrantAccount"
 
 export default function Adminsettings() {
     const [activeTab, setActiveTab] = useState('addshop');
@@ -35,6 +37,12 @@ export default function Adminsettings() {
                                 <span className="ms-3">Update Product</span>
                             </div>
                         </li>
+                        <li>
+                            <div onClick={() => setActiveTab('grantacc')} className={`cursor-pointer flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-red-200/80 group ${activeTab === 'grantacc' ? 'bg-red-200' : 'bg-white'}`}>
+                                <img className="w-6 h-6" src={key} alt="" />
+                                <span className="ms-3">Grant Account Access</span>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </aside>
@@ -44,6 +52,7 @@ export default function Adminsettings() {
                 {activeTab === 'addshop' && <AddShop />}
                 {activeTab === 'delshop' && <DelShop />}
                 {activeTab === 'updateshop' && <UpdateShopItem />}
+                {activeTab === 'grantacc' && <GrantAccount />}
                 {/* Add other tab content here */}
             </div>
         </div>

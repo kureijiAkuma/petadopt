@@ -4,6 +4,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { DB, storage } from "../firebase";
 import { message } from 'antd';
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { Spinner } from "@material-tailwind/react";
 
 const ProductTable = () => {
   const [productData, setProductData] = useState([]);
@@ -18,6 +19,8 @@ const ProductTable = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [featuredImageNames, setFeaturedImageNames] = useState([]);
   const [thumbnailName, setThumbnailName] = useState("");
+  const [category, setCategory] = useState("");
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,7 +30,6 @@ const ProductTable = () => {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          rating: item.rating,
           description: item.description,
           thumbnailUrl: item.thumbnailUrl,
           imgUrls: item.imgUrls,
@@ -49,7 +51,6 @@ const ProductTable = () => {
     if (selectedProduct) {
       setTotalColor(selectedProduct.colorValues.length);
       setColorValues(selectedProduct.colorValues);
-
     }
   }, [selectedProduct]);
 
@@ -70,15 +71,13 @@ const ProductTable = () => {
     }
   };
 
-
-
   const handleRowClick = (product) => {
     setSelectedProduct(product);
     setSelectedSizes(product.sizes || []);
     setSelectedImageIndex(null); // Reset selected image index
     setModalOpen(true);
     setEditedData({ ...product });
-  
+
     // Extract filenames of featured images and thumbnail
     const featuredImageNames = product.imgUrls.map(url => getFileName(url));
     const thumbnailName = getFileName(product.thumbnailUrl);
@@ -117,7 +116,7 @@ const ProductTable = () => {
     setSelectedImageIndex(index);
     document.getElementById("featuredImageInput").click();
   };
-  
+
   const handleFeaturedImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -195,7 +194,7 @@ const ProductTable = () => {
       const updatedImgUrls = await Promise.all(editedData.imgUrls.map(async (imageUrl, index) => {
         if (imageUrl.startsWith("data:image")) {
           const featuredImageFile = await uploadImageToStorage(imageUrl, "featured", featuredImageNames[index]);
-          console.log("FEATURED IMAGE FILE:",featuredImageFile);
+          console.log("FEATURED IMAGE FILE:", featuredImageFile);
           return await getDownloadURL(featuredImageFile);
         }
         return imageUrl;
@@ -208,6 +207,7 @@ const ProductTable = () => {
       await updateDoc(productDocRef, {
         ...updatedData,
         colorValues,
+        category: category // Add the category field
       });
       message.success("Document successfully updated!");
       closeModal();
@@ -223,6 +223,7 @@ const ProductTable = () => {
   };
   
 
+
   const uploadImageToStorage = async (imageDataUrl, type, folderandimgname) => {
     // Convert base64 data URL to Blob
     const base64String = imageDataUrl.split(",")[1];
@@ -232,47 +233,51 @@ const ProductTable = () => {
       byteArray[i] = bytes.charCodeAt(i);
     }
     const blob = new Blob([byteArray], { type: "image/jpeg" });
-    
+
     // Upload Blob to Firebase Storage
     const storageRef = ref(storage, `${folderandimgname}`);
     await uploadBytes(storageRef, blob);
     return storageRef;
   };
-  
+
   const getFileName = (url) => {
     // Split the URL by '/'
     const parts = url.split("/");
-  
+
     // Find the part containing the filename
     let filenamePart = parts[parts.length - 1];
-  
+
     // Remove any additional parameters after '?' if present
     const indexOfQuestionMark = filenamePart.indexOf("?");
     if (indexOfQuestionMark !== -1) {
       filenamePart = filenamePart.substring(0, indexOfQuestionMark);
     }
-  
+
     // Replace any encoded characters
     filenamePart = decodeURIComponent(filenamePart);
     console.log("THIS IS FILENAMEPART")
     console.log(filenamePart)
     return filenamePart;
   };
-  
+
 
   return (
     <div className="mt-24">
-      <h2 className="text-2xl font-bold">Product Items Table</h2>
+
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex justify-center items-center w-full h-full z-50">
+          <Spinner color="gray" className="w-96 h-96 animate-spin mt-16" />
+        </div>
+
       ) : (
+
         <table className="w-full mt-4">
+
           <thead>
             <tr>
               <th className="border px-4 py-2">Name</th>
               <th className="border px-4 py-2">Price</th>
               <th className="border px-4 py-2">Quantity</th>
-              <th className="border px-4 py-2">Rating</th>
               <th className="border px-4 py-2">Created At</th>
             </tr>
           </thead>
@@ -286,7 +291,6 @@ const ProductTable = () => {
                 <td className="border px-4 py-2">{item.name}</td>
                 <td className="border px-4 py-2">{item.price}</td>
                 <td className="border px-4 py-2">{item.quantity}</td>
-                <td className="border px-4 py-2">{item.rating}</td>
                 <td className="border px-4 py-2">{item.createdAt}</td>
               </tr>
             ))}
@@ -305,7 +309,7 @@ const ProductTable = () => {
             >
               &times;
             </span>
-            
+
             <h2 className="text-xl font-bold mb-2">{selectedProduct.name}</h2>
             <form>
               <div className="mb-4">
@@ -321,7 +325,7 @@ const ProductTable = () => {
                   name="name"
                   value={editedData.name}
                   onChange={handleInputChange}
-                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="py-1 px-2 mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 
                 />
               </div>
@@ -338,7 +342,7 @@ const ProductTable = () => {
                   name="price"
                   value={editedData.price}
                   onChange={handleInputChange}
-                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="p-1 px-2 mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
               <div className="mb-4">
@@ -354,25 +358,35 @@ const ProductTable = () => {
                   name="quantity"
                   value={editedData.quantity}
                   onChange={handleInputChange}
-                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="p-1 px-2 mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
+
               <div className="mb-4">
                 <label
-                  htmlFor="rating"
+                  htmlFor="category"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Rating
+                  Category
                 </label>
-                <input
-                  type="text"
-                  id="rating"
-                  name="rating"
-                  value={editedData.rating}
-                  onChange={handleInputChange}
-                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                />
+                <select
+                  id="category"
+                  name="category"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="p-1 px-2 mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                >
+                  <option value="">Select a category</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Pet Foods">Pet Foods</option>
+                  <option value="Medicines">Medicines</option>
+                  <option value="Hygiene">Hygiene</option>
+                  <option value="Toys">Toys</option>
+
+                </select>
               </div>
+
+
               <div className="mb-4">
                 <label
                   htmlFor="description"
@@ -385,7 +399,7 @@ const ProductTable = () => {
                   name="description"
                   value={editedData.description}
                   onChange={handleInputChange}
-                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  className="p-1 px-2 mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
               <div className="mb-4">

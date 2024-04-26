@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, serverTimestamp  } from "firebase/firestore";
+import { collection, addDoc, getDocs, serverTimestamp } from "firebase/firestore";
 import { DB, storage } from "../firebase";
 import { useEffect, useState } from "react";
 import { v4 } from "uuid";
@@ -8,31 +8,29 @@ import {
     getDownloadURL,
 } from "firebase/storage";
 import { message } from 'antd';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; // Import Quill's snow theme CSS
 
 export default function AddShop() {
     const [selectedSizes, setSelectedSizes] = useState([]); // State to hold selected sizes
-
-    {/* Texts */ }
     const [productname, setNewProductName] = useState("");
     const [price, setNewPrice] = useState(0);
     const [rating, setNewRating] = useState(0);
     const [totalColor, setTotalColor] = useState(1);
     const [quantity, setNewQuantity] = useState(0);
     const [description, setNewDescription] = useState("");
-    const [thumbnailUrl, setThumbnailUrl] = useState(""); // State to store thumbnail URL
-    const [colorValues, setColorValues] = useState(["#000000"]); // Array to hold color values
+    const [thumbnailUrl, setThumbnailUrl] = useState("");
+    const [colorValues, setColorValues] = useState(["#000000"]);
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [totalVarieties, setTotalVarieties] = useState(0);
 
-    {/* Load List of items in database */ }
     const shopItemsCollectionRef = collection(DB, "shopitems");
     const [shopitems, setShopItems] = useState([]);
 
     const createShopItem = async () => {
         try {
-            // Upload thumbnail image
             const thumbnailUrl = await uploadThumbnail(thumbnailUpload);
-            // Upload featured images
             const imageUrls = await Promise.all(imageUploads.map(uploadFile));
-            // Save document with image URLs
             await addDoc(shopItemsCollectionRef, {
                 name: productname,
                 price: Number(price),
@@ -41,12 +39,13 @@ export default function AddShop() {
                 rating: rating,
                 thumbnailUrl: thumbnailUrl,
                 imgUrls: imageUrls,
-                colorValues: colorValues, // Save color values to the database
-                sizes: selectedSizes, // Save selected sizes to the database
+                category: selectedCategory,
+                colorValues: colorValues,
+                sizes: selectedSizes,
+                totalVarieties: totalVarieties,
                 createdAt: serverTimestamp()
             });
             message.success("File Uploaded!");
-
         } catch (error) {
             console.error("Error uploading shop item:", error);
             message.error("Failed to upload file!");
@@ -61,23 +60,16 @@ export default function AddShop() {
         getShopItems();
     }, []);
 
-    {/* Images */ }
     const [thumbnailUpload, setThumbnailUpload] = useState(null);
     const [imageUploads, setImageUploads] = useState([]);
-    const [error, setError] = useState("");
 
     const handleTotalColorChange = (event) => {
-        const newTotal = parseInt(event.target.value);
-        if (newTotal < totalColor) {
-            // If the new total is less than the previous total,
-            // remove the extra color values from the array
-            setColorValues(colorValues.slice(0, newTotal));
-        } else if (newTotal > totalColor) {
-            // If the new total is greater than the previous total,
-            // add default color values for the new colors
-            setColorValues([...colorValues, ...Array.from({ length: newTotal - totalColor }, () => "#000000")]);
+        let newTotal = parseInt(event.target.value);
+        if (isNaN(newTotal) || newTotal < 0) {
+            newTotal = 0;
         }
-        setTotalColor(newTotal); // Update the total color state
+        setTotalColor(newTotal);
+        setColorValues(colorValues.slice(0, newTotal));
     };
 
     const handleColorChange = (index, event) => {
@@ -128,6 +120,10 @@ export default function AddShop() {
         });
     };
 
+    const handleCategoryChange = (event) => {
+        setSelectedCategory(event.target.value);
+    };
+
     const handleSizeChange = (size) => {
         setSelectedSizes(prevSizes => {
             if (prevSizes.includes(size)) {
@@ -139,27 +135,25 @@ export default function AddShop() {
     };
 
     const handleSubmit = () => {
-        // Check if any input field is empty
         if (
             !productname ||
             !price ||
             !quantity ||
+            !selectedCategory ||
             !description ||
+            !totalVarieties||
             !thumbnailUpload ||
             imageUploads.some(image => !image)
         ) {
             message.error("Please fill out all fields")
             return;
         }
-
-        // If all conditions are met, proceed with creating the shop item
         createShopItem();
     };
 
     return (
-
         <div className=" h-fit w-3/4 p-5 mt-24 mb-5 flex gap-4 flex-col justify-around rounded-lg bg-gray-300 border-2 border-solid border-black/80 shadow-xl shadow-black ">
-            <h1 className="font-Roboto text-lg font-medium">Product Name</h1>
+            <h1 className="font-Roboto text-lg font-medium">Product name</h1>
             <input onChange={(event) => { setNewProductName(event.target.value) }} className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base" type="text" required />
 
             <h1 className="font-Roboto text-lg font-medium">Price (₱)</h1>
@@ -168,6 +162,29 @@ export default function AddShop() {
             <h1 className="font-Roboto text-lg font-medium">Quantity</h1>
             <input onChange={(event) => { setNewQuantity(event.target.value) }} type="number" required className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base" />
 
+            <h1 className="font-Roboto text-lg font-medium">Category</h1>
+            <select value={selectedCategory} onChange={handleCategoryChange} className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base">
+                <option value="">Select Category</option>
+                <option value="Accessories">Accessories</option>
+                <option value="Medicines">Medicines</option>
+                <option value="Pet Foods">Pet Foods</option>
+                <option value="Hygiene">Hygiene</option>
+                <option value="Toys">Toys</option>
+            </select>
+
+            <h1 className="font-Roboto text-lg font-medium">Number of varieties</h1>
+            <input
+                type="number"
+                value={totalVarieties}
+                onChange={(event) => {
+                    const value = parseInt(event.target.value);
+                    if (!isNaN(value) && value >= 0) {
+                        setTotalVarieties(value);
+                    }
+                }}
+                className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base"
+            />
+
             <h1 className="font-Roboto text-lg font-medium">Total color available</h1>
             <input type="number" onChange={handleTotalColorChange} value={totalColor} className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base" />
             <div className="flex justify-start items-center gap-2 flex-wrap">
@@ -175,7 +192,12 @@ export default function AddShop() {
             </div>
 
             <h1 className="font-Roboto text-lg font-medium">Description</h1>
-            <textarea onChange={(event) => { setNewDescription(event.target.value) }} cols="30" rows="5" required className="bg-white rounded-lg border border-solid border-black p-2 font-Roboto text-base"></textarea>
+            <ReactQuill 
+                theme="snow" 
+                value={description} 
+                onChange={setNewDescription} 
+                className="bg-white border border-solid border-black font-Roboto text-base" 
+            />
 
             <h1 className="font-Roboto text-lg font-medium">Size</h1>
             <div className="flex justify-start items-start gap-x-5">
@@ -191,9 +213,6 @@ export default function AddShop() {
                     </div>
                 ))}
             </div>
-
-            <h1 className="font-Roboto text-lg font-medium">Images</h1>
-            
 
             {/* Featured images placeholders */}
             <div className="flex gap-4">
@@ -221,5 +240,5 @@ export default function AddShop() {
 
             <button onClick={handleSubmit} type="submit" className="w-1/2 px-5 py-2 self-center rounded-lg border border-solid border-black/70 hover:bg-red-200/80 active:bg-red-300/80 bg-red-200 font-Roboto font-medium text-black">Submit</button>
         </div>
-    )
+    );
 }
