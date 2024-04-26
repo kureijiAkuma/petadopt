@@ -13,41 +13,54 @@ import { GetProduct } from "../API/GetItems";
 
 export default function Shop() {
 
-
-    const [list, setList] = useState([])
+    const [list, setList] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
 
     const fetchData = async () => {
         try {
-            const response = await GetProduct();
-            if (response.success) {
-                const productList = response.data.map(item => ({
-                    ...item,
-                    docid: item.id // Assuming the unique identifier is stored in 'id'
-                }));
-                setList(productList);
-            }
+            const querySnapshot = await getDocs(collection(DB, "shopitems"));
+            const productList = querySnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    docid: doc.id
+                };
+            });
+            setList(productList);
+            console.log("List", list)
         } catch (error) {
             console.error("Error fetching product data:", error);
         }
     };
-    
+
+
     // Call the API when component mounts.
-    useEffect(() => { fetchData() }, [])
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleCategoryClick = (category) => {
+        if (selectedCategories.includes(category)) {
+            setSelectedCategories(selectedCategories.filter((c) => c !== category));
+        } else {
+            setSelectedCategories([...selectedCategories, category]);
+        }
+    };
+
+    // Filter the posts based on selected categories
+    const filteredPosts = list.filter((post) =>
+        selectedCategories.length === 0 || selectedCategories.some((category) => post.category === category)
+    );
 
 
-    {/*Load Database in Shop items folder */ }
-    const shopItemsCollectionRef = collection(DB, "shopitems");
-    console.log(shopItemsCollectionRef)
-    const [shopitems, setShopItems] = useState([]);
 
-    {/*Number of post per page */ }
+    // Number of posts per page
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(12);
 
     const lastPostIndex = currentPage * postsPerPage;
     const firstPostIndex = lastPostIndex - postsPerPage;
-    const currentPosts = list.slice(firstPostIndex, lastPostIndex);
-
+    const currentPosts = filteredPosts.slice(firstPostIndex, lastPostIndex);
 
 
     return (
@@ -64,13 +77,75 @@ export default function Shop() {
                         </div>
 
                         <div className="p-5 pb-6 w-3/4 font-Roboto bg-pink-50 shadow-md shadow-zinc-950 border border-solid border-black/20">
-                            <h1 className=" pb-2 border-b border-b-gray-700 font-semibold text-lg text-gray-700">PRODUCT CATEGORIES</h1>
-                            <ul >
-                                <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Accessories</li>
-                                <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Pet Foods</li>
-                                <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Medicines</li>
-                                <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Hygiene</li>
-                                <li className=" hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700">Toys</li>
+                            <h1 className=" pb-2 border-b border-b-gray-700 font-semibold text-lg text-gray-700">
+                                PRODUCT CATEGORIES
+                            </h1>
+                            <ul>
+                                <li
+                                    className={`flex justify-between hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700 ${selectedCategories.includes("Accessories") ? "bg-gray-300" : ""
+                                        }`}
+                                    onClick={() => handleCategoryClick("Accessories")}
+                                >
+                                    Accessories{" "}
+                                    <input
+                                        value="Accessories"
+                                        type="checkbox"
+                                        checked={selectedCategories.includes("Accessories")}
+                                        onChange={() => { }}
+                                    />
+                                </li>
+                                <li
+                                    className={`flex justify-between hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700 ${selectedCategories.includes("Pet Foods") ? "bg-gray-300" : ""
+                                        }`}
+                                    onClick={() => handleCategoryClick("Pet Foods")}
+                                >
+                                    Pet Foods{" "}
+                                    <input
+                                        value="Pet Foods"
+                                        type="checkbox"
+                                        checked={selectedCategories.includes("Pet Foods")}
+                                        onChange={() => { }}
+                                    />
+                                </li>
+                                <li
+                                    className={`flex justify-between hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700 ${selectedCategories.includes("Medicines") ? "bg-gray-300" : ""
+                                        }`}
+                                    onClick={() => handleCategoryClick("Medicines")}
+                                >
+                                    Medicines{" "}
+                                    <input
+                                        value="Medicines"
+                                        type="checkbox"
+                                        checked={selectedCategories.includes("Medicines")}
+                                        onChange={() => { }}
+                                    />
+                                </li>
+                                <li
+                                    className={`flex justify-between hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700 ${selectedCategories.includes("Hygiene") ? "bg-gray-300" : ""
+                                        }`}
+                                    onClick={() => handleCategoryClick("Hygiene")}
+                                >
+                                    Hygiene{" "}
+                                    <input
+                                        value="Hygiene"
+                                        type="checkbox"
+                                        checked={selectedCategories.includes("Hygiene")}
+                                        onChange={() => { }}
+                                    />
+                                </li>
+                                <li
+                                    className={`flex justify-between hover:bg-red-100 hover:rounded-md hover:shadow-md shadow-black/50 hover:cursor-pointer px-2 py-2 border-b border-b-gray-700 font-normal text-base text-gray-700 ${selectedCategories.includes("Toys") ? "bg-gray-300" : ""
+                                        }`}
+                                    onClick={() => handleCategoryClick("Toys")}
+                                >
+                                    Toys{" "}
+                                    <input
+                                        value="Toys"
+                                        type="checkbox"
+                                        checked={selectedCategories.includes("Toys")}
+                                        onChange={() => { }}
+                                    />
+                                </li>
                             </ul>
                         </div>
 

@@ -18,6 +18,7 @@ import { message } from "antd";
 const AuthDetails = () => {
     const [authUser, setAuthUser] = useState(null);
     const [username, setUsername] = useState("");
+    const [level, setLevel] = useState(1);
 
     const history = useNavigate();
 
@@ -42,6 +43,8 @@ const AuthDetails = () => {
             const userDoc = await getDoc(doc(DB, "users", uid));
             if (userDoc.exists()) {
                 setUsername(userDoc.data().username);
+                console.log("USERDOC",userDoc.data())
+                setLevel(userDoc.data().level);
             } else {
                 setUsername("");
             }
@@ -78,7 +81,7 @@ const AuthDetails = () => {
                         <MenuItem>
                             <NavLink to="/mypurchase">My Purchase</NavLink>
                         </MenuItem>
-                        {authUser.email === "admin@gmail.com" ? (
+                        {level === "3" ? (
                             <MenuItem className="hover:bg-gray-500">
                                 <NavLink to="/adminsettings">Admin Settings</NavLink>
                             </MenuItem>

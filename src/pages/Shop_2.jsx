@@ -26,6 +26,7 @@ export default function Shop_2(props) {
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null); // State to store the selected color
   const [selectedSize, setSelectedSize] = useState(null); // State to store the selected size
+  const [selectedVariety, setSelectedVariety] = useState(null); // State to store the selected variety
   const [uid, setUid] = useState(null);
 
   const location = useLocation();
@@ -52,7 +53,7 @@ export default function Shop_2(props) {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProductData(docSnap.data());
-          
+
           // Load reviews for the product
           const reviewsRef = doc(DB, "reviews", docid);
           const reviewsDoc = await getDoc(reviewsRef);
@@ -100,11 +101,17 @@ export default function Shop_2(props) {
     setSelectedSize(size);
   };
 
+  const handleVarietySelect = (variety) => {
+    setSelectedVariety(variety); // Set the variety number itself as the selectedVariety
+  };
+
+
+
   const handleAddToCart = async () => {
     try {
       // Check if all necessary information is selected
-      if ((productData.colorValues.length>0 && productData.sizes.length>0) && (!selectedColor || !selectedSize)) {
-        message.error("Please select color and size.");
+      if ((productData.colorValues.length > 0 && !selectedColor) || (productData.sizes.length > 0 && !selectedSize) || (productData.totalVarieties > 0 && !selectedVariety)) {
+        message.error("Please select color/size/variety before adding to cart");
         return;
       }
 
@@ -120,6 +127,7 @@ export default function Shop_2(props) {
           docId: docId,
           color: selectedColor,
           size: selectedSize,
+          variety: selectedVariety, // Add selected variety
           quantity: quantity,
           timestamp: new Date(),
         };
@@ -134,6 +142,7 @@ export default function Shop_2(props) {
           docId: docId,
           color: selectedColor,
           size: selectedSize,
+          variety: selectedVariety, // Add selected variety
           quantity: quantity,
           timestamp: new Date(),
         }];
@@ -145,12 +154,6 @@ export default function Shop_2(props) {
       console.error("Error adding item to cart:", error);
     }
   };
-
-
-
-
-
-
 
   return (
     <div className="overflow-y-auto overflow-x-hidden bg-fixed bg-no-repeat bg-center bg-cover" style={{ backgroundImage: `url(${background})` }}>
@@ -192,6 +195,7 @@ export default function Shop_2(props) {
                 </div>
                 <h2 className="ml-auto font-Roboto text-xl text-gray-800 font-bold">{productData.quantity} available</h2>
               </div>
+
               {productData.colorValues && productData.colorValues.length > 0 && (
                 <div>
                   <h2 className="font-Roboto text-lg font-medium">Color</h2>
@@ -210,23 +214,24 @@ export default function Shop_2(props) {
                   </div>
                 </div>
               )}
-              {productData.sizes && productData.sizes.length > 0 && (
+
+              {productData.totalVarieties && productData.totalVarieties > 0 && (
                 <div>
-                  <h2 className="mt-2 font-Roboto text-lg font-medium">Size</h2>
-                  <div className="flex gap-1 flex-wrap">
-                    {productData.sizes.map((size, index) => (
+                  <h2 className="mt-2 font-Roboto text-lg font-medium">Variety</h2>
+                  <div className="flex gap-2 flex-wrap">
+                    {[...Array(productData.totalVarieties)].map((_, index) => (
                       <button
                         key={index}
-                        className={`w-fit h-fit px-5  border border-solid border-black text-center shadow-custom-2 active:bg-gray-400 ${selectedSize === size ? "bg-gray-800" : "bg-white"
-                          }`}
-                        onClick={() => handleSizeSelect(size)}
-                      >
-                        <h1 className="font-Roboto font-medium text-base">{size}</h1>
+                        onClick={() => handleVarietySelect(index + 1)} // Add 1 to make the variety start from 1 instead of 0
+                        className={`w-fit h-fit px-5 border border-solid border-black text-center shadow-custom-2 ${selectedVariety === index + 1 ? "bg-gray-800 text-white shadow-sm" : "bg-white"}`}>
+                        Variety {index + 1}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
+
+
               <h2 className="mt-2 font-Roboto text-lg font-medium">Quantity</h2>
               <div className="flex flex-wrap w-fit h-fit gap-1">
                 <button onClick={() => changeQuantity(quantity > 1 ? quantity - 1 : 1)} className="w-fit h-fit px-5 bg-white border border-solid border-black text-center shadow-custom-2 active:bg-gray-400">

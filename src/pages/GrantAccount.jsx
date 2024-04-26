@@ -1,32 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { DB } from "../firebase";
 
 export default function GrantAccount() {
-  const [usersUID, setUsersUID] = useState([]);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // Make API request to fetch all users' UID
-    async function fetchUsersUID() {
+    const fetchUsers = async () => {
       try {
-        const response = await axios.get('https://console.firebase.google.com/u/1/project/petapp-4e257/authentication/users'); // Replace '/api/users-uid' with the actual endpoint URL
-        setUsersUID(response.data);
-        console.log("USERSUID:",usersUID);
+        const usersSnapshot = await getDocs(collection(DB, "users"));
+        const usersArray = [];
+        usersSnapshot.forEach((doc) => {
+          const userData = doc.data();
+          const user = {
+            id: doc.id,
+            username: userData.username,
+            level: userData.level,
+          };
+          usersArray.push(user);
+        });
+        setUsers(usersArray);
       } catch (error) {
-        console.error('Error fetching users UID:', error);
+        console.log(error);
       }
-    }
-
-    fetchUsersUID();
+    };
+    fetchUsers();
   }, []);
+
+  const handleLevelChange = async (userId, newLevel) => {
+    try {
+      await updateDoc(doc(DB, "users", userId), {
+        level: newLevel,
+      });
+      // Update the local state to reflect the change
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...user, level: newLevel } : user
+        )
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="pt-24">
-      <h1>All Users UID:</h1>
-      <ul>
-        {usersUID.map((uid, index) => (
-          <li key={index}>{uid}</li>
-        ))}
-      </ul>
+      <table className="border-separate border-spacing-y-12 border-spacing-x-20 border border-black rounded-md mb-6">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user, index) => (
+            <tr key={index}>
+              <td>{user.id}</td>
+              <td>{user.username}</td>
+              <td>
+                <select
+                  value={user.level}
+                  onChange={(e) => handleLevelChange(user.id, e.target.value)}
+                >
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
