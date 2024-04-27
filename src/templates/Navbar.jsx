@@ -26,7 +26,7 @@ export default function Navbar(props) {
                     <img className="w-40 h-12" src={logo} alt="" />
                 </NavLink>
 
-                <NavLink to="/adopt" className="p-2 text-base text-black font-Roboto font-medium hover:text-gray-700">Adopt</NavLink>
+                
 
                 <NavLink to="/shop" className="p-2 text-base text-black font-Roboto font-medium hover:text-gray-700">Shop</NavLink>
 

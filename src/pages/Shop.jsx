@@ -72,9 +72,9 @@ export default function Shop() {
 
                     <div className=" pt-6 w-full flex flex-col justify-center items-center gap-5">
 
-                        <div className="w-3/4 bg-pink-50 shadow-md shadow-zinc-950/50 border border-solid border-black/20 hover:bg-red-100  hover:cursor-pointer py-2 px-5 font-normal text-base text-gray-700">
-                            <h1 className="font-semibold text-base">Sort Latest</h1>
-                        </div>
+                        {/*<div className="w-3/4 bg-pink-50 shadow-md shadow-zinc-950/50 border border-solid border-black/20 hover:bg-red-100  hover:cursor-pointer py-2 px-5 font-normal text-base text-gray-700">
+                            <h1 className="font-semibold text-base">Sort by latest</h1>
+                        </div>*/}
 
                         <div className="p-5 pb-6 w-3/4 font-Roboto bg-pink-50 shadow-md shadow-zinc-950 border border-solid border-black/20">
                             <h1 className=" pb-2 border-b border-b-gray-700 font-semibold text-lg text-gray-700">
@@ -88,6 +88,7 @@ export default function Shop() {
                                 >
                                     Accessories{" "}
                                     <input
+                                        className="cursor-pointer"
                                         value="Accessories"
                                         type="checkbox"
                                         checked={selectedCategories.includes("Accessories")}
@@ -101,6 +102,7 @@ export default function Shop() {
                                 >
                                     Pet Foods{" "}
                                     <input
+                                        className="cursor-pointer"
                                         value="Pet Foods"
                                         type="checkbox"
                                         checked={selectedCategories.includes("Pet Foods")}
@@ -114,6 +116,7 @@ export default function Shop() {
                                 >
                                     Medicines{" "}
                                     <input
+                                        className="cursor-pointer"
                                         value="Medicines"
                                         type="checkbox"
                                         checked={selectedCategories.includes("Medicines")}
@@ -127,6 +130,7 @@ export default function Shop() {
                                 >
                                     Hygiene{" "}
                                     <input
+                                        className="cursor-pointer"
                                         value="Hygiene"
                                         type="checkbox"
                                         checked={selectedCategories.includes("Hygiene")}
@@ -140,6 +144,7 @@ export default function Shop() {
                                 >
                                     Toys{" "}
                                     <input
+                                        className="cursor-pointer"
                                         value="Toys"
                                         type="checkbox"
                                         checked={selectedCategories.includes("Toys")}
@@ -162,10 +167,12 @@ export default function Shop() {
                     <div className="flex justify-center basis-full ">
                         <Pagination
                             totalPosts={list.length}
+                            filteredPosts={filteredPosts} // Pass filteredPosts here
                             postsPerPage={postsPerPage}
                             setCurrentPage={setCurrentPage}
                             currentPage={currentPage}
                         />
+
 
                     </div>
 

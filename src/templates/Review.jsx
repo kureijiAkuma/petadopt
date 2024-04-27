@@ -42,6 +42,8 @@ export default function Review(props) {
       try {
         const reviewDocRef = doc(collection(DB, "reviews"), props.docId);
         const docSnap = await getDoc(reviewDocRef);
+        const shopitemDocRef = doc(collection(DB, "shopitems"),props.docId);
+        const shopitemDocSnap = await getDoc(shopitemDocRef);
         
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -91,7 +93,7 @@ export default function Review(props) {
       const reviewsCollectionRef = collection(DB, "reviews");
       const reviewDocRef = doc(reviewsCollectionRef, props.docId);
       const docSnap = await getDoc(reviewDocRef);
-
+  
       if (docSnap.exists()) {
         // Get the existing reviews array data
         const existingReviews = docSnap.data().reviews || [];
@@ -101,14 +103,14 @@ export default function Review(props) {
         const totalReviews = docSnap.data().totalReviews || 0;
         // Get the existing rating counts
         const ratingCounts = docSnap.data().rating || [0, 0, 0, 0, 0]; // Initialize to zeros if not exist
-
+  
         // Calculate the new totalRating
         const newTotalRating = totalRating + rating;
         // Calculate the new totalReviews
         const newTotalReviews = totalReviews + 1;
         // Increment the corresponding rating count
         ratingCounts[rating - 1] += 1;
-
+  
         // Append the new review to the existing array
         const updatedReviews = [
           ...existingReviews,
@@ -119,7 +121,7 @@ export default function Review(props) {
             dateTime: new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }) // Display datetime in UTC+8 timezone
           }
         ];
-
+  
         // Update the document with the updated reviews and rating arrays
         await setDoc(reviewDocRef, {
           reviews: updatedReviews,
@@ -127,6 +129,14 @@ export default function Review(props) {
           totalReviews: newTotalReviews,
           rating: ratingCounts
         }, { merge: true });
+  
+        // Now update the rating field in the shopitem document with the new value
+        const shopitemDocRef = doc(collection(DB, "shopitems"), props.docId);
+        await setDoc(shopitemDocRef, {
+          rating: (newTotalRating / newTotalReviews).toFixed(1) || 0.0
+        }, { merge: true });
+  
+        setShowModal(false); // Close the modal after submitting the review
       } else {
         // Document does not exist, create a new one with the review and rating arrays
         await setDoc(reviewDocRef, {
@@ -140,13 +150,13 @@ export default function Review(props) {
           totalReviews: 1, // Initialize with 1 for the new review
           rating: [rating === 1 ? 1 : 0, rating === 2 ? 1 : 0, rating === 3 ? 1 : 0, rating === 4 ? 1 : 0, rating === 5 ? 1 : 0] // Initialize the rating array with 1 for the new review
         });
+        setShowModal(false); // Close the modal after submitting the review
       }
-
-      setShowModal(false); // Close the modal after submitting the review
     } catch (e) {
       console.error("Error adding review: ", e);
     }
   };
+  
 
 
 

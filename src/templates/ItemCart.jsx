@@ -33,9 +33,11 @@ export default function ItemCart({ onToggleItem, item, onDeleteItem, index }) {
     const totalItemPrice = product.price * item.quantity;
 
     const handleToggleCheckbox = () => {
-        setChecked(prevChecked => !prevChecked);
-        onToggleItem(totalItemPrice, !checked, index, item.docId );
+        const newChecked = !checked;
+        setChecked(newChecked);
+        onToggleItem(totalItemPrice, newChecked, index, item.docId);
     };
+    
 
     const handleDeleteButtonClick = () => {
         if (checked) {
@@ -43,7 +45,7 @@ export default function ItemCart({ onToggleItem, item, onDeleteItem, index }) {
         }
         onDeleteItem(index);
     };
-    
+
     return (
         <div className="min-w-full bg-orange-200 py-4 px-5 border border-black/50 rounded">
             <div className="flex">
@@ -55,14 +57,16 @@ export default function ItemCart({ onToggleItem, item, onDeleteItem, index }) {
                         <h1 className="font-Roboto font-bold text-lg">{product.name}</h1>
                         <Checkbox checked={checked} onChange={handleToggleCheckbox} />
                         <div className="ml-auto flex w-fit">
-                            <button 
-                            onClick={handleDeleteButtonClick}
-                            className="w-fit h-fit px-0 py-0  bg-red-700 rounded hover:bg-red-500 active:bg-red-600">
+                            <button
+                                onClick={handleDeleteButtonClick}
+                                className="w-fit h-fit px-0 py-0  bg-red-700 rounded hover:bg-red-500 active:bg-red-600">
                                 <img className="size-5" src={minus} alt="" />
                             </button>
                         </div>
                     </div>
                     <div className="flex justify-evenly gap-10">
+
+
                         <div>
                             <h2 className="font-Roboto font-normal text-base text-gray-800">
                                 Color
@@ -72,6 +76,14 @@ export default function ItemCart({ onToggleItem, item, onDeleteItem, index }) {
                                 style={{ backgroundColor: item.color }}
                             ></div>
                         </div>
+
+                        <div>
+                            <h2 className="font-Roboto font-normal text-base text-gray-800">
+                                Variety
+                            </h2>
+                            <h2>{item.variety}</h2>
+                        </div>
+
                         <div>
                             <h2 className="font-Roboto font-normal text-base text-gray-800">
                                 Size

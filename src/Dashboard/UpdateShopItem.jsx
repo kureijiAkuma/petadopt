@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GetProduct } from "../API/GetItems";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { DB, storage } from "../firebase";
 import { message } from 'antd';
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { Spinner } from "@material-tailwind/react";
+import ReactQuill from "react-quill";
 
 const ProductTable = () => {
   const [productData, setProductData] = useState([]);
@@ -12,14 +13,16 @@ const ProductTable = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const modalRef = useRef(null);
-  const [editedData, setEditedData] = useState({});
+  const [editedData, setEditedData] = useState({ description: "" });
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [totalColor, setTotalColor] = useState(0);
   const [colorValues, setColorValues] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [featuredImageNames, setFeaturedImageNames] = useState([]);
   const [thumbnailName, setThumbnailName] = useState("");
+  const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState("");
+  const [totalVarieties, setTotalVarieties] = useState(0);
 
 
   useEffect(() => {
@@ -39,6 +42,13 @@ const ProductTable = () => {
           id: item.id,
         }));
         setProductData(modifiedData);
+        // Extract categories from product data
+        const uniqueCategories = Array.from(new Set(modifiedData.map(item => item.category)));
+        setCategories(uniqueCategories);
+        // Set default category if available
+        if (uniqueCategories.length > 0) {
+          setCategory(uniqueCategories[0]);
+        }
       } else {
         console.error("Error fetching product data:", result.error);
       }
@@ -71,12 +81,22 @@ const ProductTable = () => {
     }
   };
 
+  const handleQuillChange = (content) => {
+    setEditedData((prevData) => ({
+      ...prevData,
+      description: content.toString(), // Convert content to string if needed
+    }));
+  };
+
   const handleRowClick = (product) => {
+    console.log("Selected product:", product); // Add this line for debugging
     setSelectedProduct(product);
     setSelectedSizes(product.sizes || []);
     setSelectedImageIndex(null); // Reset selected image index
     setModalOpen(true);
     setEditedData({ ...product });
+    setCategory(product.category); // Set the category state to the category of the selected product
+    console.log("Category state after row click:", category); // Add this line for debugging
 
     // Extract filenames of featured images and thumbnail
     const featuredImageNames = product.imgUrls.map(url => getFileName(url));
@@ -84,6 +104,7 @@ const ProductTable = () => {
     setFeaturedImageNames(featuredImageNames);
     setThumbnailName(thumbnailName);
   };
+
 
   const closeModal = () => {
     setModalOpen(false);
@@ -144,12 +165,30 @@ const ProductTable = () => {
   }, []);
 
   const handleInputChange = (e) => {
+    if (!e || !e.target) {
+      console.error("Event object or target property is undefined");
+      return;
+    }
+
     const { name, value } = e.target;
-    setEditedData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+
+    // Handle description separately
+    if (name === "description") {
+      setEditedData((prevData) => ({
+        ...prevData,
+        description: value,
+      }));
+    } else {
+      // For other input fields
+      setEditedData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
+
+
+
 
   const handleSizeChange = (size) => {
     setSelectedSizes((prevSizes) =>
@@ -183,45 +222,68 @@ const ProductTable = () => {
 
   const saveChanges = async () => {
     try {
-      const { createdAt, thumbnailUrl, imgUrls, ...updatedData } = editedData; // Exclude createdAt, thumbnailUrl, and imgUrls fields
-  
-      // Upload the updated thumbnail image to Firebase Storage if it has been modified
-      if (editedData.thumbnailUrl.startsWith("data:image")) {
-        const thumbnailFile = await uploadImageToStorage(editedData.thumbnailUrl, "thumbnail", thumbnailName);
-        updatedData.thumbnailUrl = await getDownloadURL(thumbnailFile);
-      }
-  
-      const updatedImgUrls = await Promise.all(editedData.imgUrls.map(async (imageUrl, index) => {
-        if (imageUrl.startsWith("data:image")) {
-          const featuredImageFile = await uploadImageToStorage(imageUrl, "featured", featuredImageNames[index]);
-          console.log("FEATURED IMAGE FILE:", featuredImageFile);
-          return await getDownloadURL(featuredImageFile);
+      // Check if editedData.description is defined and a string
+      if (typeof editedData.description === 'string') {
+        // Continue with the update process
+        const updatedData = { ...editedData };
+        updatedData.description = updatedData.description || ""; // Set a default value if description is null or undefined
+        updatedData.description = String(updatedData.description); // Convert description to string if needed
+        updatedData.totalVarieties = totalVarieties;
+
+        // Upload the updated thumbnail image to Firebase Storage if it has been modified
+        if (editedData.thumbnailUrl.startsWith("data:image")) {
+          const thumbnailFile = await uploadImageToStorage(editedData.thumbnailUrl, "thumbnail", thumbnailName);
+          updatedData.thumbnailUrl = await getDownloadURL(thumbnailFile);
         }
-        return imageUrl;
-      }));
-  
-      updatedData.imgUrls = updatedImgUrls;
-  
-      // Update the Firestore document with the new data
-      const productDocRef = doc(DB, "shopitems", selectedProduct.id);
-      await updateDoc(productDocRef, {
-        ...updatedData,
-        colorValues,
-        category: category // Add the category field
-      });
-      message.success("Document successfully updated!");
-      closeModal();
-  
-      setProductData((prevProductData) =>
-        prevProductData.map((item) =>
-          item.id === selectedProduct.id ? updatedData : item
-        )
-      );
+
+        const updatedImgUrls = await Promise.all(editedData.imgUrls.map(async (imageUrl, index) => {
+          if (imageUrl.startsWith("data:image")) {
+            const featuredImageFile = await uploadImageToStorage(imageUrl, "featured", featuredImageNames[index]);
+            console.log("FEATURED IMAGE FILE:", featuredImageFile);
+            return await getDownloadURL(featuredImageFile);
+          }
+          return imageUrl;
+        }));
+
+        updatedData.imgUrls = updatedImgUrls;
+
+        // Update the Firestore document with the new data
+        const productDocRef = doc(DB, "shopitems", selectedProduct.id);
+        const productDocSnapshot = await getDoc(productDocRef); // Retrieve the document snapshot
+        if (productDocSnapshot.exists()) {
+          const productData = productDocSnapshot.data();
+          await updateDoc(productDocRef, {
+            ...updatedData,
+            colorValues,
+            category, // Add the category field
+            createdAt: productData.createdAt, // Use the original createdAt timestamp from the document snapshot
+          });
+          message.success("Document successfully updated!");
+          closeModal();
+
+          setProductData((prevProductData) =>
+            prevProductData.map((item) =>
+              item.id === selectedProduct.id ? updatedData : item
+            )
+          );
+        } else {
+          console.error("Document does not exist.");
+        }
+      } else {
+        // Handle the case where description is not defined or not a string
+        console.error("Description is not defined or not a string.");
+      }
     } catch (error) {
       console.error("Error updating document: ", error);
     }
   };
-  
+
+
+
+
+
+
+
 
 
   const uploadImageToStorage = async (imageDataUrl, type, folderandimgname) => {
@@ -386,6 +448,22 @@ const ProductTable = () => {
                 </select>
               </div>
 
+              <div className="mb-4">
+                <label
+                  htmlFor="totalVarieties"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Total Varieties
+                </label>
+                <input
+                  type="number"
+                  id="totalVarieties"
+                  value={totalVarieties}
+                  onChange={(e) => setTotalVarieties(parseInt(e.target.value))}
+                  className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                />
+              </div>
+
 
               <div className="mb-4">
                 <label
@@ -394,14 +472,15 @@ const ProductTable = () => {
                 >
                   Description
                 </label>
-                <textarea
+                <ReactQuill
                   id="description"
-                  name="description"
                   value={editedData.description}
-                  onChange={handleInputChange}
+                  onChange={handleQuillChange} // Bind the onChange event to handleQuillChange function
                   className="p-1 px-2 mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
+
+
               <div className="mb-4">
                 <label
                   htmlFor="sizes"

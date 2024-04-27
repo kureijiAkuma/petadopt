@@ -55,6 +55,7 @@ export default function MyPurchase() {
                             
                             <th className=" font-Roboto font-semibold text-lg text-black">Product Name</th>
                             <th className=" font-Roboto font-semibold text-lg text-black">Color</th>
+                            <th className=" font-Roboto font-semibold text-lg text-black">Variety</th>
                             <th className=" font-Roboto font-semibold text-lg text-black">Size</th>
                             <th className=" font-Roboto font-semibold text-lg text-black">Quantity</th>
                             <th className=" font-Roboto font-semibold text-lg text-black">Timestamp</th>

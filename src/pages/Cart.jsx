@@ -117,7 +117,7 @@ export default function Cart() {
             message.error("Please set up phone number and barangay in settings before proceeding");
             return;
         }
-    
+
         try {
             // Filter out only the checked items from the cart
             const checkedItems = cartItems.filter(item => item.checked)
@@ -127,21 +127,41 @@ export default function Cart() {
                     quantity: item.quantity,
                     color: item.color,
                     size: item.size,
+                    variety: item.variety,
                     timestamp: new Date(), // Generate timestamp on the client side
                     status: "Pending",
-                    userId: userid
+                    userId: userid,
+
                 }));
-    
+
             if (checkedItems.length === 0) {
                 // If no items are checked, display an error message
                 message.error("Please select items to purchase before proceeding");
                 return;
             }
-    
+
+            // Check if the requested quantity exceeds the available quantity for any product
+            for (const item of checkedItems) {
+                const productDocRef = doc(DB, "shopitems", item.docId);
+                const productDocSnapshot = await getDoc(productDocRef);
+                if (productDocSnapshot.exists()) {
+                    const productData = productDocSnapshot.data(); // Fetch productData
+                    if (item.quantity > productData.quantity) {
+                        // If the requested quantity exceeds the available quantity, display an error message
+                        message.error(`Not enough stock available for ${productData.name}. Please reduce the quantity.`);
+                        return;
+                    }
+                } else {
+                    // If the product document doesn't exist, display an error message
+                    message.error(`Product with ID ${item.docId} not found.`);
+                    return;
+                }
+            }
+
             // Create a new purchase document with the checked items
             const purchaseDocRef = doc(DB, `purchases/${userid}`);
             const purchaseDocSnapshot = await getDoc(purchaseDocRef);
-    
+
             let mergedItems = [];
             if (purchaseDocSnapshot.exists()) {
                 // If the document exists, merge existing items with new items
@@ -151,42 +171,69 @@ export default function Cart() {
                 // If the document doesn't exist, use only the new items
                 mergedItems = checkedItems;
             }
-    
+
             await setDoc(purchaseDocRef, {
                 items: mergedItems
             });
-    
+
+            const quantityToUpdate = {};
+
+            checkedItems.forEach(item => {
+                if (quantityToUpdate[item.docId] === undefined) {
+                    quantityToUpdate[item.docId] = 0;
+                }
+                quantityToUpdate[item.docId] += item.quantity;
+            });
+
+            // Update the quantity of each purchased item in the shopitems collection
+            await Promise.all(Object.entries(quantityToUpdate).map(async ([docId, totalQuantity]) => {
+                const productDocRef = doc(DB, "shopitems", docId);
+                const productDocSnapshot = await getDoc(productDocRef);
+            
+                if (productDocSnapshot.exists()) {
+                    const currentQuantity = productDocSnapshot.data().quantity;
+                    const updatedQuantity = currentQuantity - totalQuantity;
+            
+                    // Ensure the updated quantity is not negative
+                    const newQuantity = updatedQuantity >= 0 ? updatedQuantity : 0;
+            
+                    // Update the quantity of the product in the shopitems collection
+                    await updateDoc(productDocRef, {
+                        quantity: newQuantity
+                    });
+                }
+            }));
+
             // Remove the checked items from both the cartItems state and Firestore
             const updatedCart = cartItems.filter(item => !item.checked);
             setCartItems(updatedCart); // Update the cartItems state
-    
+
             // Update the cart document in Firestore
             const cartDocRef = doc(DB, "cart", userid);
+            await updateDoc(cartDocRef, { cart: updatedCart });
 
-            if (cartDocRef){
-                await updateDoc(cartDocRef, { cart: updatedCart });
-            }
-            else{
-                await setDoc(cartDocRef, { cart: updatedCart });
-            }
-            
             console.log("Checked items removed from Firestore.");
-    
+
             setTotalPrice(0);
-    
+
             // Provide feedback to the user
             message.success("Purchase confirmed successfully!");
 
             window.location.reload();
-    
+
         } catch (error) {
             console.error("Error confirming purchase:", error);
             // Provide error feedback to the user
             message.error("Error confirming purchase. Please try again later.");
         }
     };
-    
-    
+
+
+
+
+
+
+
     return (
         <div>
             <Navbar />

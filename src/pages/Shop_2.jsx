@@ -53,6 +53,7 @@ export default function Shop_2(props) {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProductData(docSnap.data());
+          console.log("docid", docid)
 
           // Load reviews for the product
           const reviewsRef = doc(DB, "reviews", docid);
@@ -111,6 +112,10 @@ export default function Shop_2(props) {
     try {
       // Check if all necessary information is selected
       if ((productData.colorValues.length > 0 && !selectedColor) || (productData.sizes.length > 0 && !selectedSize) || (productData.totalVarieties > 0 && !selectedVariety)) {
+        console.log(1, productData.colorValues.length, !selectedColor)
+        console.log(2, productData.sizes.length, !selectedSize)
+        console.log(3, productData.totalVarieties, !selectedVariety)
+
         message.error("Please select color/size/variety before adding to cart");
         return;
       }
@@ -196,7 +201,8 @@ export default function Shop_2(props) {
                 <h2 className="ml-auto font-Roboto text-xl text-gray-800 font-bold">{productData.quantity} available</h2>
               </div>
 
-              {productData.colorValues && productData.colorValues.length > 0 && (
+              {productData.colorValues ?
+              productData.colorValues && productData.colorValues.length > 0 && (
                 <div>
                   <h2 className="font-Roboto text-lg font-medium">Color</h2>
                   <div className="mt-2 flex gap-2 flex-wrap">
@@ -213,23 +219,42 @@ export default function Shop_2(props) {
                     ))}
                   </div>
                 </div>
-              )}
+              ):""}
 
-              {productData.totalVarieties && productData.totalVarieties > 0 && (
+              {productData.sizes ? 
+              productData.sizes && productData.sizes.length > 0 && (
                 <div>
-                  <h2 className="mt-2 font-Roboto text-lg font-medium">Variety</h2>
+                  <h2 className="mt-2 font-Roboto text-lg font-medium">Size</h2>
                   <div className="flex gap-2 flex-wrap">
-                    {[...Array(productData.totalVarieties)].map((_, index) => (
+                    {productData.sizes.map((size, index) => ( // Use map instead of Array constructor
                       <button
                         key={index}
-                        onClick={() => handleVarietySelect(index + 1)} // Add 1 to make the variety start from 1 instead of 0
-                        className={`w-fit h-fit px-5 border border-solid border-black text-center shadow-custom-2 ${selectedVariety === index + 1 ? "bg-gray-800 text-white shadow-sm" : "bg-white"}`}>
-                        Variety {index + 1}
+                        onClick={() => handleSizeSelect(size)} // Pass the size value to the handler
+                        className={`w-fit h-fit px-5 border border-solid border-black text-center shadow-custom-2 ${selectedSize === size ? "bg-gray-800 text-white shadow-sm" : "bg-white"}`}>
+                        {size}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
+              ):""}
+
+              {productData.totalVarieties ? 
+                productData.totalVarieties && productData.totalVarieties > 0 && (
+                  <div>
+                    <h2 className="mt-2 font-Roboto text-lg font-medium">Variety</h2>
+                    <div className="flex gap-2 flex-wrap">
+                      {[...Array(productData.totalVarieties)].map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleVarietySelect(index + 1)} // Add 1 to make the variety start from 1 instead of 0
+                          className={`w-fit h-fit px-5 border border-solid border-black text-center shadow-custom-2 ${selectedVariety === index + 1 ? "bg-gray-800 text-white shadow-sm" : "bg-white"}`}>
+                          Variety {index + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ):""}
+
 
 
               <h2 className="mt-2 font-Roboto text-lg font-medium">Quantity</h2>

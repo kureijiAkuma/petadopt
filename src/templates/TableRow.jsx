@@ -65,13 +65,14 @@ export default function TableRow({ purchase }) {
                     <td className="text-center">{productNames[index]}</td>
 
 
-
+                    
                     <td className="text-center">
                         <div
                             className={`w-10 h-5 rounded ring-blue-gray-900 ring-1 m-auto`}
                             style={{ backgroundColor: item.color }}>
                         </div>
                     </td>
+                    <td className="text-center">{item.variety}</td>
                     <td className="text-center">{item.size}</td>
                     <td className="text-center">{item.quantity}</td>
                     <td className="text-center">{item.timestamp.toDate().toLocaleString()}</td>
