@@ -84,8 +84,8 @@ export default function Signin() {
 
 
     return (
-        <div className="flex w-screen h-screen">
-            <div className="flex justify-center items-center w-5/12 h-full bg-red-200/90">
+        <div className="flex flex-col sm:flex-row w-screen h-screen">
+            <div className="sm:w-5/12 h-1/2 sm:h-full bg-red-200/90">
                 <div className="relative mx-auto w-full max-w-md bg-white px-6 pt-10 pb-8 shadow-xl ring-1 ring-gray-900/5 sm:rounded-xl sm:px-10 shadow-black">
 
                     <form className="w-full" onSubmit={signIn}>
@@ -140,8 +140,8 @@ export default function Signin() {
                     </form>
                 </div>
             </div>
-            <div className="w-7/12 h-full bg-yellow-200">
-                <img className="w-full h-screen" src={background} alt="" />
+            <div className="sm:w-7/12 h-1/2 sm:h-full bg-yellow-200">
+                <img className="w-full h-1/2 sm:h-full object-left" src={background} alt="" />
             </div>
         </div>
     )

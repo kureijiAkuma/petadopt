@@ -46,8 +46,8 @@ export default function Signup() {
     };
 
     return (
-        <div className="flex w-screen h-screen">
-            <div className="flex justify-center items-center w-5/12 h-full bg-red-200/90">
+        <div className="flex flex-wrap w-screen h-screen">
+            <div className="flex justify-center items-center w-full md:w-5/12 h-full bg-red-200/90">
                 <div className="relative mx-auto w-full max-w-md bg-white p-6 shadow-xl ring-1 ring-gray-900/5 sm:rounded-xl sm:px-10 shadow-black">
                     <form className="w-full" onSubmit={signUp}>
                         <div className="text-center">
@@ -155,8 +155,8 @@ export default function Signup() {
                     </form>
                 </div>
             </div>
-            <div className="w-7/12 h-full bg-yellow-200">
-                <img className="w-full h-screen" src={background} alt="" />
+            <div className="w-full md:w-7/12 h-full bg-yellow-200">
+                <img className="hidden md:block w-full h-screen" src={background} alt="" />
             </div>
         </div>
     );
